@@ -235,13 +235,3 @@ class Connection:
             raise_errors=True
         )
 
-conn = Connection(
-    'itx-yeet',
-    "L1arevFN2cWpKn9wlJpR7gFLFiWgIqIHsHhkXCBij7Q=",
-    1001,
-    remotes=["207.38.165.56:30131"]
-)
-print(conn.walk(conn.enumerate_peers()[0]))
-print(conn.listdir(conn.enumerate_peers()[0]))
-conn.boop(conn.enumerate_peers()[0], 'booped_folder')
-conn.bonk(conn.enumerate_peers()[0], 'movies')
