@@ -194,3 +194,54 @@ class Connection:
                     f.write(self.yoinks_in_progress[yoink_metadata['yoink_id']][block].read())
             del self.yoinks_in_progress[yoink_metadata['yoink_id']]
             return pformat(local_path)
+    
+    def listdir(self, target, directory=''):
+        return self.node.command(
+            command_path='listfiles',
+            kwargs={
+                'path': directory
+            },
+            target=target,
+            raise_errors=True
+        )
+    
+    def walk(self, target, top=''):
+        return self.node.command(
+            command_path='walk',
+            kwargs={
+                'path': top
+            },
+            target=target,
+            raise_errors=True
+        )
+    
+    def boop(self, target, path): # Make new folder
+        return self.node.command(
+            command_path='boop',
+            kwargs={
+                'path': path
+            },
+            target=target,
+            raise_errors=True
+        )
+    
+    def bonk(self, target, path): # Delete a file or folder
+        self.node.command(
+            command_path='bonk',
+            kwargs={
+                'path': path
+            },
+            target=target,
+            raise_errors=True
+        )
+
+conn = Connection(
+    'itx-yeet',
+    "L1arevFN2cWpKn9wlJpR7gFLFiWgIqIHsHhkXCBij7Q=",
+    1001,
+    remotes=["207.38.165.56:30131"]
+)
+print(conn.walk(conn.enumerate_peers()[0]))
+print(conn.listdir(conn.enumerate_peers()[0]))
+conn.boop(conn.enumerate_peers()[0], 'booped_folder')
+conn.bonk(conn.enumerate_peers()[0], 'movies')

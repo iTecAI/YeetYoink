@@ -85,6 +85,10 @@ def check_timeouts_loop():
             if STATE.yeets[yeet]['timeout_time'] < time.time():
                 [x.close() for x in STATE.yeets[yeet]['data'].values()]
                 del STATE.yeets[yeet]
+        for yoink in list(STATE.yoinks.keys()):
+            if STATE.yoinks[yoink]['timeout_time'] < time.time():
+                STATE.yoinks[yoink]['file_object'].close()
+                del STATE.yoinks[yoink]
         time.sleep(0.5)
 
 if (
@@ -239,6 +243,7 @@ def continue_yoink(node: Node, args: list, kwargs: dict): # yoink ID, block inde
     if not args[0] in STATE.yoinks.keys():
         raise YoinkNotFoundError(f'YOINK {args[0]} does not exist.')
     logging.debug(f'Continuing YOINK {args[0]} @ Block Index {str(args[1])}.')
+    STATE.yoinks[args[0]]['timeout_time'] = time.time() + CONFIG.transfer.file_timeout
     STATE.yoinks[args[0]]['file_object'].seek(args[1] * STATE.yoinks[args[0]]['blocksize'])
     raw_data = STATE.yoinks[args[0]]['file_object'].read(STATE.yoinks[args[0]]['blocksize'])
     raw_data_b64_1 = base64.urlsafe_b64encode(raw_data)
@@ -260,7 +265,41 @@ def finish_yoink(node: Node, args: list, kwargs: dict):
     del STATE.yoinks[args[0]]
     return {}
 NODE.register_command('finish_yoink', finish_yoink)
-    
+
+def walk(node: Node, args: list, kwargs: dict):
+    if 'path' in kwargs:
+        walk_data = list(os.walk(os.path.join(pformat(CONFIG.transfer.root), pformat(kwargs['path']))))
+    else:
+        walk_data = list(os.walk(pformat(CONFIG.transfer.root)))
+    processed = []
+    for d in walk_data:
+        processed.append([d[0].split(pformat(CONFIG.transfer.root))[1].replace('\\', '/').lstrip('/'), d[1], d[2]])
+    return processed
+NODE.register_command('walk', walk)
+
+def boop(node: Node, args: list, kwargs: dict): # Creates a new folder
+    if 'path' in kwargs.keys():
+        logging.info(f'BOOPing {kwargs["path"]}')
+        os.makedirs(os.path.join(pformat(CONFIG.transfer.root), pformat(kwargs['path'])), exist_ok=True)
+        return kwargs['path']
+    else:
+        raise TypeError('kwargs must include path of new folder.')
+NODE.register_command('boop', boop)
+
+def bonk(node: Node, args: list, kwargs: dict): # Delete file or folder
+    if 'path' in kwargs.keys():
+        path = os.path.join(pformat(CONFIG.transfer.root), pformat(kwargs['path']))
+        logging.info(f'BONKing {kwargs["path"]}')
+        if os.path.exists(path):
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+        else:
+            raise FileNotFoundError
+    else:
+        raise TypeError('kwargs must include path of new folder.')
+NODE.register_command('bonk', bonk)
 
 logging.info('Starting timeout check thread.')
 check_thread = threading.Thread(name='check_timeouts', target=check_timeouts_loop, daemon=True)
