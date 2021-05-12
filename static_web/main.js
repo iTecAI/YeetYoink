@@ -122,6 +122,7 @@ async function js_update(profiles) {
         }
         dummyOptions.replaceAll('#remote-node-select');
         var data = JSON.parse(localStorage.getItem('yeetyoink_data'));
+        console.log(data);
         if (data.current_node) {
             $('#remote-node-select').val(data.current_node);
         } else {
@@ -130,6 +131,10 @@ async function js_update(profiles) {
         localStorage.setItem('yeetyoink_data', JSON.stringify(data));
         $('#remote-file-browser .path-input').val(JSON.parse(localStorage.getItem('yeetyoink_data')).remote_path);
         if (data.current_node) {
+            if ($('#remote-node-select').val() == null) {
+                localStorage.removeItem('yeetyoink_data');
+                window.location.reload();
+            }
             eel.listdir_remote(
                 $('#remote-node-select').val().split('|')[0],
                 $('#remote-node-select').val().split('|')[1],
@@ -445,6 +450,12 @@ $(document).ready(async function () {
             $('#remote-node-select').val().split('|')[1],
             remote
         );
+    });
+    $('#remote-node-select').on('change', function () {
+        var data = JSON.parse(localStorage.getItem('yeetyoink_data'));
+        data.current_node = $('#remote-node-select').val();
+        localStorage.setItem('yeetyoink_data', JSON.stringify(data));
+        eel.profiles()(js_update);
     });
 
     var cwd = await eel.get_cwd()();

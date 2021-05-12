@@ -649,6 +649,7 @@ button:focus, input:focus, select:focus, textarea:focus {
     width: fit-content;
     max-width: calc(100% - 35px);
     overflow-x: hidden;
+    white-space: nowrap;
 }
 #tracker-list .tracker-item .progress-wrapper {
     position: absolute;

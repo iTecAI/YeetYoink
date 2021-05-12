@@ -133,3 +133,5 @@ dmypy.json
 secure/
 *.bat
 temp/
+__distribution__
+*.zip
