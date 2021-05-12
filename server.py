@@ -61,7 +61,7 @@ else:
     sys.exit()
 
 NODE = Node(
-    CONFIG.node.name.replace('.','-').replace('|','-').replace(':','-').format(hostname=gethostname(), ipaddr=gethostbyname(gethostname())), 
+    CONFIG.node.name.replace('.','-').replace('|','-').replace(':','-').format(hostname=gethostname(), ipaddr=gethostbyname(gethostname()))+'-srv', 
     CONFIG.node.network.replace('.','-').replace('|','-').replace(':','-'), 
     CONFIG.node.network_key, 
     ports=[
@@ -193,9 +193,12 @@ def finish_yeet_spinoff(args):
     with open(os.path.join(pformat(CONFIG.transfer.root), pformat(STATE.yeets[args[0]]['path']), STATE.yeets[args[0]]['filename']), 'wb') as f:
         for i in range(len(STATE.yeets[args[0]]['data'].keys())):
             STATE.yeets[args[0]]['timeout_time'] = time.time() + CONFIG.transfer.file_timeout
-            f.write(base64.urlsafe_b64decode(STATE.yeets[args[0]]['data'][i].read()))
-            STATE.yeets[args[0]]['data'][i].close()
-            del STATE.yeets[args[0]]['data'][i]
+            try:
+                f.write(base64.urlsafe_b64decode(STATE.yeets[args[0]]['data'][i].read()))
+                STATE.yeets[args[0]]['data'][i].close()
+                del STATE.yeets[args[0]]['data'][i]
+            except KeyError:
+                logging.warning('Lost Block '+str(i))
     del STATE.yeets[args[0]]
 
 def finish_yeet(node: Node, args: list, kwargs: dict):

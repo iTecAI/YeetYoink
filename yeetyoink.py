@@ -38,12 +38,13 @@ class Connection:
         self.node.start_multithreaded()
 
     def enumerate_peers(self):
-        targets = list(self.node.peers.keys())
-        targets.extend(list(self.node.remote_peers.keys()))
+        targets = [i for i in list(self.node.peers.keys()) if i.endswith('-srv')]
+        targets.extend([i for i in list(self.node.remote_peers.keys()) if i.endswith('-srv')])
         return list(set(targets))
 
-    def _yeet_single_block(self, yeet_fernet, fd, block, yeet_metadata, target, callback, num_blocks):
+    def _yeet_single_block(self, yeet_fernet, fd, block, yeet_metadata, target, callback, local_path, remote_path, num_blocks):
         fd.seek(block * self.blocksize)
+        time.sleep(0.05)
         blockdata = base64.urlsafe_b64encode(fd.read(self.blocksize))
         block_data = base64.urlsafe_b64encode(
             yeet_fernet.encrypt(
@@ -53,7 +54,7 @@ class Connection:
                 )
         )
         try:
-            self.node.command(
+            res = self.node.command(
                 command_path='continue_yeet',
                 args=[
                     yeet_metadata['yeet_id'],
@@ -66,7 +67,7 @@ class Connection:
             raise LookupError('Lost connection to target.')
         self.yeet_meters[yeet_metadata['yeet_id']] += 1
         if callable(callback):
-            callback(self.yeet_meters[yeet_metadata['yeet_id']], num_blocks)
+            callback(self.yeet_meters[yeet_metadata['yeet_id']], num_blocks, yeet_metadata['yeet_id'], local_path, remote_path)
 
     def yeet(self, target, local_path, remote_path='', callback=None):
         if not os.path.exists(pformat(local_path)):
@@ -97,7 +98,7 @@ class Connection:
             )
         )
         self.yeet_meters[yeet_metadata['yeet_id']] = 0
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             results = [executor.submit(
                 self._yeet_single_block,
                 yeet_fernet,
@@ -106,6 +107,8 @@ class Connection:
                 yeet_metadata,
                 target,
                 callback,
+                local_path,
+                remote_path,
                 math.ceil(fsize / self.blocksize)
             ) for block in range(math.ceil(fsize / self.blocksize))]
         del self.yeet_meters[yeet_metadata['yeet_id']]
@@ -113,7 +116,7 @@ class Connection:
             yeet_metadata['yeet_id']
         ], target=target, raise_errors=True, timeout=2.5)
     
-    def _yoink_single_block(self, fernet: Fernet, index, target, yoink_id, callback, num_blocks):
+    def _yoink_single_block(self, fernet: Fernet, index, target, yoink_id, callback, num_blocks, lp, rp):
         ret_dat = self.node.command(
             command_path='continue_yoink',
             args=[
@@ -131,7 +134,7 @@ class Connection:
         self.yoinks_in_progress[yoink_id][index].seek(0)
         self.yoink_meters[yoink_id] += 1
         if callable(callback):
-            callback(self.yoink_meters[yoink_id], num_blocks)
+            callback(self.yoink_meters[yoink_id], num_blocks, yoink_id, lp, rp)
     
     def yoink(self, target, remote_path, local_path=None, callback=None):
         try:
@@ -159,7 +162,7 @@ class Connection:
 
         self.yoink_meters[yoink_metadata['yoink_id']] = 0
         self.yoinks_in_progress[yoink_metadata['yoink_id']] = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             results = [executor.submit(
                 self._yoink_single_block,
                 yoink_fernet,
@@ -167,7 +170,9 @@ class Connection:
                 target,
                 yoink_metadata['yoink_id'],
                 callback,
-                yoink_metadata['blocks']
+                yoink_metadata['blocks'],
+                local_path,
+                remote_path
             ) for block in range(yoink_metadata['blocks'])]
         del self.yoink_meters[yoink_metadata['yoink_id']]
         self.node.command(
@@ -191,7 +196,10 @@ class Connection:
                 pass
             with open(pformat(local_path), 'wb') as f:
                 for block in range(yoink_metadata['blocks']):
-                    f.write(self.yoinks_in_progress[yoink_metadata['yoink_id']][block].read())
+                    try:
+                        f.write(self.yoinks_in_progress[yoink_metadata['yoink_id']][block].read())
+                    except KeyError:
+                        print('Lost Block '+str(block))
             del self.yoinks_in_progress[yoink_metadata['yoink_id']]
             return pformat(local_path)
     
@@ -234,4 +242,3 @@ class Connection:
             target=target,
             raise_errors=True
         )
-

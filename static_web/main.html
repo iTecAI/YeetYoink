@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>YeetYoink UI</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="/eel.js"></script>
+    <script src="/main.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/main.css">
+    <link rel="shortcut icon" href="/logo_small.png" type="image/png">
+</head>
+
+<body>
+    <div id='title-bar' class='shadow noselect'>
+        <img id='title-image' src='/logo_small.png' alt='logo' class='shadow-sm'>
+        <span id='title-text'>
+            <span class='main-title'>YeetYoink File Transfer System</span>
+            <span class='subtitle'>The Professional's P2P Solution</span>
+        </span>
+    </div>
+    <div id='network-selector'>
+        <div id='sel-title' class='noselect'>
+            <span class='material-icons'>public</span>
+            <span class='title'>Network Profiles</span>
+        </div>
+        <div id='network-list' class='scroll1'>
+
+        </div>
+        <div id='new-connection-form' class='noselect shadow-sm'>
+            <span class='material-icons'>public</span>
+            <span class='title'>New Network Profile</span>
+            <span class='divider'></span>
+            <span class='input'>
+                <input id='display-name-input' placeholder='My Yeet Spot'>
+                <span>Display Name</span>
+            </span>
+            <span class='input'>
+                <input id='network-name-input' placeholder='my-yeet-spot'>
+                <span>Network Name</span>
+            </span>
+            <span class='input'>
+                <input id='network-key-input' placeholder='SHA-256 Key'>
+                <span>Network Key</span>
+            </span>
+            <span class='input'>
+                <input id='network-port-input' placeholder='1001'>
+                <span>Network Port</span>
+            </span>
+            <span class='input'>
+                <input id='remotes-input' placeholder='ip:port, ip:port, etc'>
+                <span>Relay Servers</span>
+            </span>
+            <button id='finish-new-connection'>Finish</button>
+        </div>
+        <button id='new-connection' class='shadow-sm'>
+            <span class='material-icons'>add</span>
+        </button>
+    </div>
+    <div id='tracker-sidebar'>
+        <div id='tr-title' class='noselect'>
+            <span class='material-icons'>assessment</span>
+            <span class='title'>Transfer Trackers</span>
+        </div>
+        <div id='tracker-list' class='noscroll noselect'>
+
+        </div>
+    </div>
+    <div id='local-file-browser'>
+        <div class='browser-title'>
+            <span class='title noselect'>Local Filesystem</span>
+            <input class='path-input'>
+            <span class='material-icons noselect'>folder</span>
+        </div>
+        <div class='browser-files'>
+
+        </div>
+    </div>
+    <div id='remote-file-browser'>
+        <div class='browser-title'>
+            <span class='title noselect'>Remote Filesystem</span>
+            <select id='remote-node-select'>
+
+            </select>
+            <span id='remote-cosmetic-slash'>/</span>
+            <input class='path-input'>
+            <span class='material-icons noselect'>folder</span>
+        </div>
+        <div class='browser-files'>
+            
+        </div>
+    </div>
+    <button id='boop-remote' class='noselect shadow-sm'>
+        <span class='material-icons'>create_new_folder</span>
+        <span class='button-title'>Boop</span>
+    </button>
+</body>
+
+</html>
